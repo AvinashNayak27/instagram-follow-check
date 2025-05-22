@@ -8,6 +8,7 @@ function ReclaimDemo() {
   const [proofs, setProofs] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
   const [username, setUsername] = useState("");
+  const [platform, setPlatform] = useState("instagram"); // New state for platform selection
 
   useEffect(() => {
     const checkMobile =
@@ -25,7 +26,8 @@ function ReclaimDemo() {
     const APP_ID = "0x8A852A17D50E59b8c68b0216Dd549b5754A2ba48";
     const APP_SECRET =
       "0x44e97a337f6c3bfc1c6975ba31394aea6343d539aa902e2ad62a7366e4b8f37d";
-    const PROVIDER_ID = "32f0bcaf-73fe-4937-8bb8-43d608318845";
+    const INSTA_PROVIDER_ID = "32f0bcaf-73fe-4937-8bb8-43d608318845";
+    const YOUTUBE_PROVIDER_ID = "62191dc0-3384-4b7f-9d84-b487517cba55";
 
     const isMobile =
       /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
@@ -39,6 +41,8 @@ function ReclaimDemo() {
 
     const deviceType = isMobile ? (isIOS ? "ios" : "android") : "desktop";
 
+    const PROVIDER_ID = platform === "instagram" ? INSTA_PROVIDER_ID : YOUTUBE_PROVIDER_ID;
+
     const reclaimProofRequest = await ReclaimProofRequest.init(
       APP_ID,
       APP_SECRET,
@@ -48,10 +52,11 @@ function ReclaimDemo() {
         device: deviceType,
       }
     );
-
-    reclaimProofRequest.setParams({
-      username: username,
-    });
+    reclaimProofRequest.setParams(
+      platform === "instagram" 
+        ? { username: username }
+        : { vanityChannelUrl: `http://www.youtube.com/@${username}` }
+    );
 
     const requestUrl = await reclaimProofRequest.getRequestUrl();
     console.log("Request URL:", requestUrl);
@@ -93,21 +98,37 @@ function ReclaimDemo() {
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="mx-auto bg-white rounded-lg shadow-lg p-6">
         <div className="flex flex-col items-center justify-center mb-4">
+          <div className="w-full max-w-md mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Platform
+            </label>
+            <select
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="instagram">Instagram</option>
+              <option value="youtube">YouTube</option>
+            </select>
+          </div>
           <div className="w-full max-w-md">
             <label
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Instagram Username
+              {platform === "instagram" ? "Instagram Username" : "YouTube Channel Name"}
             </label>
             <input
               type="text"
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter Instagram username"
+              placeholder={platform === "instagram" ? "Enter Instagram username" : "Enter YouTube channel name"}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            <p className="mt-1 text-sm text-gray-500">
+              Note: Enter the exact username as displayed on the platform (case sensitive)
+            </p>
           </div>
 
           <button
